@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="BW Gestão">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' fill='%231f3a5f'/%3E%3Ctext x='90' y='118' font-family='Helvetica' font-size='72' font-weight='bold' fill='%23fff' text-anchor='middle'%3EBW%3C/text%3E%3C/svg%3E">
+<title>BW Gestão</title>
+<style>
+:root{--azul:#1f3a5f;--bg:#f4f6f8;--card:#fff;--txt:#1a202c;--txt2:#64748b;--linha:#e2e8f0;--verde:#16a34a;--amarelo:#d97706;--vermelho:#dc2626;--evento:#2563eb}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--txt);font-size:15px;padding-bottom:82px}
+header{background:var(--azul);color:#fff;padding:calc(env(safe-area-inset-top) + 14px) 16px 14px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:50}
+header h1{font-size:17px;font-weight:600;letter-spacing:.5px}
+header button{background:rgba(255,255,255,.15);color:#fff;border:0;padding:6px 12px;border-radius:6px;font-size:13px}
+main{padding:16px;max-width:760px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--linha);border-radius:10px;padding:16px;margin-bottom:14px}
+.card h2{font-size:14px;text-transform:uppercase;letter-spacing:.6px;color:var(--txt2);margin-bottom:12px;font-weight:600}
+label{display:block;font-size:13px;color:var(--txt2);margin:10px 0 4px}
+input,select,textarea{width:100%;padding:11px;border:1px solid var(--linha);border-radius:8px;font-size:16px;background:#fff;font-family:inherit}
+button.primary{width:100%;background:var(--azul);color:#fff;border:0;padding:13px;border-radius:8px;font-size:15px;font-weight:600;margin-top:14px}
+button.sec{background:#fff;border:1px solid var(--linha);color:var(--txt);padding:8px 12px;border-radius:7px;font-size:13px}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--linha);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:50}
+nav button{flex:1;background:none;border:0;padding:11px 4px;font-size:11px;color:var(--txt2);display:flex;flex-direction:column;align-items:center;gap:3px}
+nav button.on{color:var(--azul);font-weight:600}
+nav span{font-size:19px}
+.hide{display:none}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kpi{background:var(--card);border:1px solid var(--linha);border-radius:10px;padding:14px}
+.kpi small{font-size:11px;color:var(--txt2);text-transform:uppercase;letter-spacing:.5px}
+.kpi b{display:block;font-size:19px;margin-top:5px}
+.cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.dow{text-align:center;font-size:11px;color:var(--txt2);padding:6px 0;font-weight:600}
+.day{aspect-ratio:1;border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;background:#fafbfc}
+.day.out{opacity:.25}.day.hoje{outline:2px solid var(--azul)}
+.dots{display:flex;gap:2px;margin-top:3px;height:5px}
+.dot{width:5px;height:5px;border-radius:50%}
+.d-pago{background:var(--verde)}.d-avencer{background:var(--amarelo)}
+.d-vencida{background:var(--vermelho)}.d-evento{background:var(--evento)}
+.item{border-left:4px solid var(--linha);background:var(--card);border:1px solid var(--linha);border-radius:9px;padding:12px;margin-bottom:9px}
+.item.pago{border-left-color:var(--verde)}.item.avencer{border-left-color:var(--amarelo)}
+.item.vencida{border-left-color:var(--vermelho)}.item.evento{border-left-color:var(--evento)}
+.item .lin1{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.item b{font-size:15px}.item .val{font-weight:700;white-space:nowrap}
+.item small{color:var(--txt2);font-size:12px;display:block;margin-top:3px}
+.acoes{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap}
+.legenda{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--txt2)}
+.legenda i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
+#login{max-width:360px;margin:60px auto;padding:0 16px}
+#login h1{color:var(--azul);text-align:center;font-size:26px;margin-bottom:6px}
+#login p{text-align:center;color:var(--txt2);font-size:13px;margin-bottom:22px}
+.msg{font-size:13px;text-align:center;margin-top:10px;color:var(--vermelho)}
+.filtros{display:flex;gap:7px;margin-bottom:12px;overflow-x:auto}
+.filtros button{white-space:nowrap;background:#fff;border:1px solid var(--linha);padding:7px 13px;border-radius:16px;font-size:13px;color:var(--txt2)}
+.filtros button.on{background:var(--azul);color:#fff;border-color:var(--azul)}
+</style>
+</head>
+<body>
+<div id="login">
+<h1>BW Gestão</h1><p>Controle interno · Willian &amp; Bárbara</p>
+<div class="card">
+<label>E-mail</label><input type="email" id="email" autocomplete="username">
+<label>Senha</label><input type="password" id="senha" autocomplete="current-password">
+<button class="primary" onclick="entrar()">Entrar</button>
+<button class="primary" style="background:#fff;color:var(--azul);border:1px solid var(--linha)" onclick="criar()">Criar conta</button>
+<div class="msg" id="msgLogin"></div>
+</div></div>
+
+<div id="app" class="hide">
+<header><h1>BW GESTÃO</h1><button onclick="sair()">Sair</button></header>
+<main>
+<section id="v-painel">
+<div class="kpis">
+<div class="kpi"><small>A pagar no mês</small><b id="k1" style="color:var(--amarelo)">—</b></div>
+<div class="kpi"><small>Pago no mês</small><b id="k2" style="color:var(--verde)">—</b></div>
+<div class="kpi"><small>Vencidas</small><b id="k3" style="color:var(--vermelho)">—</b></div>
+<div class="kpi"><small>Próximos 7 dias</small><b id="k4" style="color:var(--azul)">—</b></div>
+</div>
+<div class="card" style="margin-top:14px"><h2>Próximos vencimentos</h2><div id="proximos"></div></div>
+</section>
+
+<section id="v-cal" class="hide">
+<div class="card">
+<div class="cal-head"><button class="sec" onclick="mudaMes(-1)">‹</button><b id="mesLabel"></b><button class="sec" onclick="mudaMes(1)">›</button></div>
+<div class="grid" id="dows"></div><div class="grid" id="dias"></div>
+<div class="legenda"><span><i class="d-vencida"></i>Vencida</span><span><i class="d-avencer"></i>A vencer</span><span><i class="d-pago"></i>Paga</span><span><i class="d-evento"></i>Evento</span></div>
+<button class="primary" onclick="icsMes()">Exportar mês para o Calendário (.ics)</button>
+</div>
+<div class="card"><h2 id="tituloDia">Selecione um dia</h2><div id="listaDia"></div></div>
+</section>
+
+<section id="v-contas" class="hide">
+<div class="card"><h2>Nova conta a pagar</h2>
+<label>Descrição</label><input id="c-desc" placeholder="Ex.: Aluguel do escritório">
+<label>Categoria</label>
+<select id="c-cat">
+<option>Pagamento de funcionários</option><option>Aluguel do escritório</option>
+<option>Conta de telefone</option><option>Conta de internet</option>
+<option>Financiamento do casamento</option><option>Financiamento da casa</option>
+<option>Cartão de crédito</option><option>Outros</option>
+</select>
+<label>Valor (R$)</label><input id="c-valor" type="number" step="0.01" inputmode="decimal">
+<label>Vencimento</label><input id="c-venc" type="date">
+<label>Repetição</label>
+<select id="c-rep" onchange="document.getElementById('boxN').classList.toggle('hide',this.value==='unica')">
+<option value="unica">Única</option><option value="mensal">Mensal (fixa)</option><option value="parcelada">Parcelada</option>
+</select>
+<div id="boxN" class="hide"><label>Quantidade de meses/parcelas</label><input id="c-n" type="number" value="12" min="2" max="120"></div>
+<label>Observação</label><textarea id="c-obs" rows="2"></textarea>
+<button class="primary" onclick="salvarConta()">Salvar conta</button>
+</div>
+<div class="filtros">
+<button class="on" onclick="filtro('todas',this)">Todas</button>
+<button onclick="filtro('aberto',this)">Em aberto</button>
+<button onclick="filtro('vencida',this)">Vencidas</button>
+<button onclick="filtro('pago',this)">Pagas</button>
+</div>
+<div id="listaContas"></div>
+</section>
+
+<section id="v-lemb" class="hide">
+<div class="card"><h2>Novo lembrete / evento</h2>
+<label>Título</label><input id="l-tit">
+<label>Descrição</label><textarea id="l-desc" rows="2"></textarea>
+<label>Data</label><input id="l-data" type="date">
+<label>Hora</label><input id="l-hora" type="time" value="08:00">
+<button class="primary" onclick="salvarLembrete()">Salvar lembrete</button>
+</div>
+<div id="listaLemb"></div>
+</section>
+</main>
+<nav>
+<button class="on" onclick="ver('painel',this)"><span>▣</span>Painel</button>
+<button onclick="ver('cal',this)"><span>▦</span>Calendário</button>
+<button onclick="ver('contas',this)"><span>₿</span>Contas</button>
+<button onclick="ver('lemb',this)"><span>◷</span>Lembretes</button>
+</nav>
+</div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+/* ===== COLE AQUI SUAS DUAS CHAVES ===== */
+const SUPABASE_URL = 'https://vufrvpwpbbqtwahkyvcv.supabase.co/rest/v1/';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ1ZnJ2cHdwYmJxdHdhaGt5dmN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2NDg2MTgsImV4cCI6MjEwMDIyNDYxOH0.EfOJDMsCs2UoV8x4qLs9-ecf-0tqlLBH7-Wng3pExo4';
+/* ====================================== */
+
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+let CONTAS=[], LEMB=[], ref=new Date(), filtroAtual='todas', diaSel=null;
+const $ = id => document.getElementById(id);
+const brl = v => (v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const hoje = () => new Date().toISOString().slice(0,10);
+const dbr = d => d.split('-').reverse().join('/');
+
+window.entrar = async () => {
+  const {error} = await sb.auth.signInWithPassword({email:$('email').value.trim(),password:$('senha').value});
+  $('msgLogin').textContent = error ? 'E-mail ou senha inválidos.' : '';
+  if(!error) iniciar();
+};
+window.criar = async () => {
+  const {error} = await sb.auth.signUp({email:$('email').value.trim(),password:$('senha').value});
+  $('msgLogin').textContent = error ? error.message : 'Conta criada. Agora toque em Entrar.';
+};
+window.sair = async () => { await sb.auth.signOut(); location.reload(); };
+
+async function iniciar(){
+  $('login').classList.add('hide'); $('app').classList.remove('hide');
+  await carregar(); pedirPermissao();
+  sb.channel('bw').on('postgres_changes',{event:'*',schema:'public'},carregar).subscribe();
+}
+sb.auth.getSession().then(({data}) => { if(data.session) iniciar(); });
+
+async function carregar(){
+  const [c,l] = await Promise.all([
+    sb.from('contas').select('*').order('vencimento'),
+    sb.from('lembretes').select('*').order('data')]);
+  CONTAS = c.data||[]; LEMB = l.data||[]; render();
+}
+function statusConta(c){ return c.status==='pago' ? 'pago' : (c.vencimento < hoje() ? 'vencida' : 'avencer'); }
+
+window.ver = (v,btn) => {
+  ['painel','cal','contas','lemb'].forEach(x => $('v-'+x).classList.toggle('hide', x!==v));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('on')); btn.classList.add('on');
+};
+window.filtro = (f,btn) => {
+  filtroAtual=f; document.querySelectorAll('.filtros button').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on'); renderContas();
+};
+
+window.salvarConta = async () => {
+  const desc=$('c-desc').value.trim(), valor=parseFloat($('c-valor').value), venc=$('c-venc').value;
+  if(!desc||!valor||!venc) return alert('Preencha descrição, valor e vencimento.');
+  const rep=$('c-rep').value, n = rep==='unica' ? 1 : (parseInt($('c-n').value)||12);
+  const grupo=crypto.randomUUID(), regs=[]; const [Y,M,D]=venc.split('-').map(Number);
+  for(let i=0;i<n;i++){
+    const d=new Date(Y,M-1+i,1);
+    const ult=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
+    d.setDate(Math.min(D,ult));
+    regs.push({descricao: rep==='parcelada'?`${desc} (${i+1}/${n})`:desc,
+      categoria:$('c-cat').value, valor,
+      vencimento:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`,
+      observacao:$('c-obs').value.trim()||null,
+      grupo_id:n>1?grupo:null, parcela:n>1?i+1:null, total_parcelas:n>1?n:null});
+  }
+  const {error} = await sb.from('contas').insert(regs);
+  if(error) return alert('Erro: '+error.message);
+  ['c-desc','c-valor','c-venc','c-obs'].forEach(i=>$(i).value='');
+  await carregar();
+  baixarICS(regs.map(r=>evento(r.descricao,r.vencimento,'08:00',`${r.categoria} — ${brl(r.valor)}`)),'bw-'+desc);
+};
+
+window.pagar = async id => {
+  const d = prompt('Data do pagamento (AAAA-MM-DD):', hoje()); if(!d) return;
+  const c = CONTAS.find(x=>x.id===id);
+  const v = prompt('Valor pago (R$):', c.valor); if(v===null) return;
+  await sb.from('contas').update({status:'pago',pago_em:d,valor_pago:parseFloat(v)}).eq('id',id); carregar();
+};
+window.reabrir = async id => { await sb.from('contas').update({status:'aberto',pago_em:null,valor_pago:null}).eq('id',id); carregar(); };
+window.excluir = async id => { if(confirm('Excluir esta conta?')){ await sb.from('contas').delete().eq('id',id); carregar(); } };
+window.excluirL = async id => { if(confirm('Excluir este lembrete?')){ await sb.from('lembretes').delete().eq('id',id); carregar(); } };
+window.concluir = async (id,v) => { await sb.from('lembretes').update({concluido:!v}).eq('id',id); carregar(); };
+
+window.salvarLembrete = async () => {
+  const t=$('l-tit').value.trim(), d=$('l-data').value;
+  if(!t||!d) return alert('Preencha título e data.');
+  const reg={titulo:t,descricao:$('l-desc').value.trim()||null,data:d,hora:$('l-hora').value};
+  const {error} = await sb.from('lembretes').insert(reg);
+  if(error) return alert('Erro: '+error.message);
+  ['l-tit','l-desc','l-data'].forEach(i=>$(i).value='');
+  await carregar();
+  baixarICS([evento(reg.titulo,d,reg.hora,reg.descricao||'')],'bw-lembrete');
+};
+
+function evento(titulo,data,hora,desc){
+  const dt = data.replace(/-/g,'')+'T'+(hora||'08:00').slice(0,5).replace(':','')+'00';
+  return ['BEGIN:VEVENT','UID:'+crypto.randomUUID()+'@bwgestao',
+    'DTSTAMP:'+new Date().toISOString().replace(/[-:]/g,'').split('.')[0]+'Z',
+    'DTSTART:'+dt,'DURATION:PT30M',
+    'SUMMARY:'+titulo.replace(/[,;]/g,' '),
+    'DESCRIPTION:'+(desc||'').replace(/[,;]/g,' '),
+    'BEGIN:VALARM','TRIGGER:-P1D','ACTION:DISPLAY','DESCRIPTION:'+titulo,'END:VALARM',
+    'BEGIN:VALARM','TRIGGER:-PT0M','ACTION:DISPLAY','DESCRIPTION:'+titulo,'END:VALARM',
+    'END:VEVENT'].join('\r\n');
+}
+function baixarICS(eventos,nome){
+  const ics = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//BW Gestao//PT-BR','CALSCALE:GREGORIAN',...eventos,'END:VCALENDAR'].join('\r\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([ics],{type:'text/calendar'}));
+  a.download=nome.replace(/\s+/g,'_')+'.ics';
+  document.body.appendChild(a); a.click(); a.remove();
+}
+window.icsUm = id => { const c=CONTAS.find(x=>x.id===id);
+  baixarICS([evento(c.descricao,c.vencimento,'08:00',`${c.categoria} — ${brl(c.valor)}`)],'bw-'+c.descricao); };
+window.icsMes = () => {
+  const p = ref.getFullYear()+'-'+String(ref.getMonth()+1).padStart(2,'0');
+  const ev = [...CONTAS.filter(c=>c.vencimento.startsWith(p)&&c.status!=='pago').map(c=>evento('Vence: '+c.descricao,c.vencimento,'08:00',brl(Number(c.valor)))),
+    ...LEMB.filter(l=>l.data.startsWith(p)).map(l=>evento(l.titulo,l.data,l.hora,l.descricao||''))];
+  if(!ev.length) return alert('Nenhum item neste mês.');
+  baixarICS(ev,'bw-gestao-'+p);
+};
+
+function pedirPermissao(){ if('Notification' in window && Notification.permission==='default') Notification.requestPermission(); }
+function avisar(){
+  if(!('Notification' in window)||Notification.permission!=='granted') return;
+  const amanha = new Date(Date.now()+864e5).toISOString().slice(0,10);
+  CONTAS.filter(c=>c.status!=='pago'&&(c.vencimento===hoje()||c.vencimento===amanha))
+    .forEach(c=>new Notification('BW Gestão',{body:`${c.descricao} — ${brl(Number(c.valor))} vence em ${dbr(c.vencimento)}`}));
+}
+
+function render(){ renderPainel(); renderCal(); renderContas(); renderLemb(); avisar(); }
+
+function renderPainel(){
+  const mesAtual = new Date().toISOString().slice(0,7);
+  const mes = CONTAS.filter(c=>c.vencimento.startsWith(mesAtual));
+  const s = a => a.reduce((t,c)=>t+Number(c.valor),0);
+  $('k1').textContent = brl(s(mes.filter(c=>c.status!=='pago')));
+  $('k2').textContent = brl(s(mes.filter(c=>c.status==='pago')));
+  $('k3').textContent = brl(s(CONTAS.filter(c=>statusConta(c)==='vencida')));
+  const lim = new Date(Date.now()+7*864e5).toISOString().slice(0,10);
+  const prox = CONTAS.filter(c=>c.status!=='pago'&&c.vencimento>=hoje()&&c.vencimento<=lim);
+  $('k4').textContent = brl(s(prox));
+  $('proximos').innerHTML = prox.length ? prox.map(itemConta).join('') : '<small style="color:var(--txt2)">Nenhum vencimento nos próximos 7 dias.</small>';
+}
+
+function renderCal(){
+  $('dows').innerHTML = ['D','S','T','Q','Q','S','S'].map(d=>`<div class="dow">${d}</div>`).join('');
+  $('mesLabel').textContent = ref.toLocaleDateString('pt-BR',{month:'long',year:'numeric'}).toUpperCase();
+  const ini = new Date(ref.getFullYear(),ref.getMonth(),1);
+  const start = new Date(ini); start.setDate(1-ini.getDay());
+  let html='';
+  for(let i=0;i<42;i++){
+    const d=new Date(start); d.setDate(start.getDate()+i);
+    const iso=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const fora = d.getMonth()!==ref.getMonth();
+    const cs = CONTAS.filter(c=>c.vencimento===iso), ls = LEMB.filter(l=>l.data===iso);
+    const tipos = new Set(cs.map(statusConta)); if(ls.length) tipos.add('evento');
+    const dots = [...tipos].map(t=>`<span class="dot d-${t}"></span>`).join('');
+    html += `<div class="day ${fora?'out':''} ${iso===hoje()?'hoje':''}" onclick="abrirDia('${iso}')">${d.getDate()}<div class="dots">${dots}</div></div>`;
+  }
+  $('dias').innerHTML = html;
+  if(diaSel) abrirDia(diaSel);
+}
+window.mudaMes = n => { ref = new Date(ref.getFullYear(),ref.getMonth()+n,1); renderCal(); };
+window.abrirDia = iso => {
+  diaSel = iso; $('tituloDia').textContent = 'Dia '+dbr(iso);
+  const cs = CONTAS.filter(c=>c.vencimento===iso).map(itemConta);
+  const ls = LEMB.filter(l=>l.data===iso).map(itemLemb);
+  $('listaDia').innerHTML = [...cs,...ls].join('') || '<small style="color:var(--txt2)">Nada registrado neste dia.</small>';
+};
+
+function itemConta(c){
+  const st = statusConta(c);
+  const rot = {pago:'PAGA',avencer:'A VENCER',vencida:'VENCIDA'}[st];
+  return `<div class="item ${st}"><div class="lin1"><div><b>${c.descricao}</b>
+    <small>${c.categoria} · ${rot} · vence ${dbr(c.vencimento)}${c.pago_em?' · pago em '+dbr(c.pago_em):''}</small>
+    ${c.observacao?`<small>${c.observacao}</small>`:''}</div>
+    <div class="val">${brl(Number(c.valor))}</div></div>
+    <div class="acoes">
+    ${st!=='pago'?`<button class="sec" onclick="pagar('${c.id}')">✓ Marcar como paga</button>`:`<button class="sec" onclick="reabrir('${c.id}')">↺ Reabrir</button>`}
+    <button class="sec" onclick="icsUm('${c.id}')">＋ Agenda</button>
+    <button class="sec" onclick="excluir('${c.id}')">Excluir</button></div></div>`;
+}
+function itemLemb(l){
+  return `<div class="item evento"><div class="lin1"><div><b>${l.concluido?'✓ ':''}${l.titulo}</b>
+    <small>${dbr(l.data)} às ${l.hora.slice(0,5)}</small>
+    ${l.descricao?`<small>${l.descricao}</small>`:''}</div></div>
+    <div class="acoes"><button class="sec" onclick="concluir('${l.id}',${l.concluido})">${l.concluido?'Reabrir':'Concluir'}</button>
+    <button class="sec" onclick="excluirL('${l.id}')">Excluir</button></div></div>`;
+}
+function renderContas(){
+  let lista = CONTAS;
+  if(filtroAtual==='aberto') lista = CONTAS.filter(c=>c.status!=='pago');
+  if(filtroAtual==='pago') lista = CONTAS.filter(c=>c.status==='pago');
+  if(filtroAtual==='vencida') lista = CONTAS.filter(c=>statusConta(c)==='vencida');
+  $('listaContas').innerHTML = lista.map(itemConta).join('') || '<small style="color:var(--txt2)">Nenhuma conta.</small>';
+}
+function renderLemb(){
+  $('listaLemb').innerHTML = LEMB.map(itemLemb).join('') || '<small style="color:var(--txt2)">Nenhum lembrete.</small>';
+}
+</script>
+</body>
+</html>
