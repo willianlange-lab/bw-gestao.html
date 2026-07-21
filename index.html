@@ -127,6 +127,15 @@ nav span{font-size:19px}
 <label>Descrição</label><textarea id="l-desc" rows="2"></textarea>
 <label>Data</label><input id="l-data" type="date">
 <label>Hora</label><input id="l-hora" type="time" value="08:00">
+<label>Repetição</label>
+<select id="l-rep" onchange="document.getElementById('boxLN').classList.toggle('hide',this.value==='unica')">
+<option value="unica">Única</option>
+<option value="diaria">Diária</option>
+<option value="semanal">Semanal (mesmo dia da semana)</option>
+<option value="mensal">Mensal (mesmo dia do mês)</option>
+</select>
+<div id="boxLN" class="hide"><label>Quantas repetições</label><input id="l-n" type="number" value="12" min="2" max="365"></div>
+
 <button class="primary" onclick="salvarLembrete()">Salvar lembrete</button>
 </div>
 <div id="listaLemb"></div>
@@ -224,15 +233,30 @@ window.excluirL = async id => { if(confirm('Excluir este lembrete?')){ await sb.
 window.concluir = async (id,v) => { await sb.from('lembretes').update({concluido:!v}).eq('id',id); carregar(); };
 
 window.salvarLembrete = async () => {
-  const t=$('l-tit').value.trim(), d=$('l-data').value;
+  const t=$('l-tit').value.trim(), d=$('l-data').value, hora=$('l-hora').value;
   if(!t||!d) return alert('Preencha título e data.');
-  const reg={titulo:t,descricao:$('l-desc').value.trim()||null,data:d,hora:$('l-hora').value};
-  const {error} = await sb.from('lembretes').insert(reg);
+  const rep=$('l-rep').value, n = rep==='unica' ? 1 : (parseInt($('l-n').value)||12);
+  const [Y,M,D]=d.split('-').map(Number);
+  const regs=[];
+  for(let i=0;i<n;i++){
+    let dt;
+    if(rep==='diaria') dt = new Date(Y,M-1,D+i);
+    else if(rep==='semanal') dt = new Date(Y,M-1,D+i*7);
+    else if(rep==='mensal'){
+      const b = new Date(Y,M-1+i,1);
+      const ult = new Date(b.getFullYear(),b.getMonth()+1,0).getDate();
+      dt = new Date(b.getFullYear(),b.getMonth(),Math.min(D,ult));
+    } else dt = new Date(Y,M-1,D);
+    const iso = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+    regs.push({titulo:t, descricao:$('l-desc').value.trim()||null, data:iso, hora});
+  }
+  const {error} = await sb.from('lembretes').insert(regs);
   if(error) return alert('Erro: '+error.message);
   ['l-tit','l-desc','l-data'].forEach(i=>$(i).value='');
   await carregar();
-  baixarICS([evento(reg.titulo,d,reg.hora,reg.descricao||'')],'bw-lembrete');
+  baixarICS(regs.map(r=>evento(r.titulo,r.data,r.hora,r.descricao||'')),'bw-lembrete');
 };
+
 
 function evento(titulo,data,hora,desc){
   const dt = data.replace(/-/g,'')+'T'+(hora||'08:00').slice(0,5).replace(':','')+'00';
