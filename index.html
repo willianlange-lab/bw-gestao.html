@@ -160,7 +160,8 @@ const SUPABASE_URL = 'https://vufrvpwpbbqtwahkyvcv.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ1ZnJ2cHdwYmJxdHdhaGt5dmN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2NDg2MTgsImV4cCI6MjEwMDIyNDYxOH0.EfOJDMsCs2UoV8x4qLs9-ecf-0tqlLBH7-Wng3pExo4';
 /* =============================================== */
 
-const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY); window.onerror = (m,src,l,c) => { document.body.insertAdjacentHTML('afterbegin', `<div style="background:#dc2626;color:#fff;padding:12px;font-size:13px;position:relative;z-index:999">${m} (linha ${l})</div>`); };
+
 let CONTAS=[], LEMB=[], ref=new Date(), filtroAtual='todas', diaSel=null;
 const $ = id => document.getElementById(id);
 const brl = v => (v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
