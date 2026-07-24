@@ -56,7 +56,6 @@ nav span{font-size:19px}
 .filtros{display:flex;gap:7px;margin-bottom:12px;overflow-x:auto}
 .filtros button{white-space:nowrap;background:#fff;border:1px solid var(--linha);padding:7px 13px;border-radius:16px;font-size:13px;color:var(--txt2)}
 .filtros button.on{background:var(--azul);color:#fff;border-color:var(--azul)}
-.glink{display:block;text-align:center;background:#fff;border:1px solid var(--linha);color:var(--azul);padding:12px;border-radius:8px;margin-top:10px;text-decoration:none;font-weight:600}
 </style>
 </head>
 <body>
@@ -88,7 +87,7 @@ nav span{font-size:19px}
 <div class="cal-head"><button class="sec" onclick="mudaMes(-1)">‹</button><b id="mesLabel"></b><button class="sec" onclick="mudaMes(1)">›</button></div>
 <div class="grid" id="dows"></div><div class="grid" id="dias"></div>
 <div class="legenda"><span><i class="d-vencida"></i>Vencida</span><span><i class="d-avencer"></i>A vencer</span><span><i class="d-pago"></i>Paga</span><span><i class="d-evento"></i>Evento</span></div>
-<button class="primary" onclick="icsMes()">Exportar mês para o Calendário (.ics)</button>
+<button class="primary" onclick="icsMes()">Exportar mês para o iOS (.ics)</button>
 </div>
 <div class="card"><h2 id="tituloDia">Selecione um dia</h2><div id="listaDia"></div></div>
 </section>
@@ -116,7 +115,6 @@ nav span{font-size:19px}
 <div id="boxN" class="hide"><label>Quantidade de repetições/parcelas</label><input id="c-n" type="number" value="12" min="2" max="365"></div>
 <label>Observação</label><textarea id="c-obs" rows="2"></textarea>
 <button class="primary" onclick="salvarConta()">Salvar conta</button>
-<div id="gboxC" class="hide"></div>
 </div>
 <div class="filtros">
 <button class="on" onclick="filtro('todas',this)">Todas</button>
@@ -142,7 +140,6 @@ nav span{font-size:19px}
 </select>
 <div id="boxLN" class="hide"><label>Quantas repetições</label><input id="l-n" type="number" value="12" min="2" max="365"></div>
 <button class="primary" onclick="salvarLembrete()">Salvar lembrete</button>
-<div id="gboxL" class="hide"></div>
 </div>
 <div id="listaLemb"></div>
 </section>
@@ -158,10 +155,10 @@ nav span{font-size:19px}
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-/* ===== COLE AQUI SUA CHAVE ===== */
+/* ===== COLE AQUI SUA CHAVE (come\u00e7a com eyJ) ===== */
 const SUPABASE_URL = 'https://vufrvpwpbbqtwahkyvcv.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ1ZnJ2cHdwYmJxdHdhaGt5dmN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2NDg2MTgsImV4cCI6MjEwMDIyNDYxOH0.EfOJDMsCs2UoV8x4qLs9-ecf-0tqlLBH7-Wng3pExo4';
-/* =============================== */
+/* =============================================== */
 
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 let CONTAS=[], LEMB=[], ref=new Date(), filtroAtual='todas', diaSel=null;
@@ -173,7 +170,7 @@ const TZ = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Campo_Gr
 
 window.entrar = async () => {
   const {error} = await sb.auth.signInWithPassword({email:$('email').value.trim(),password:$('senha').value});
-  $('msgLogin').textContent = error ? 'E-mail ou senha inválidos.' : '';
+  $('msgLogin').textContent = error ? error.message : '';
   if(!error) iniciar();
 };
 window.criar = async () => {
@@ -232,9 +229,7 @@ window.salvarConta = async () => {
   const cat=$('c-cat').value;
   ['c-desc','c-valor','c-venc','c-obs'].forEach(i=>$(i).value='');
   await carregar();
-  baixarICS(regs.map(r=>evento(r.descricao,r.vencimento,'08:00',`${r.categoria} — ${brl(r.valor)}`)),'bw-'+desc);
-  mostrarG('gboxC', linkGoogle(desc, regs[0].vencimento, '08:00', `${cat} — ${brl(valor)}`, rruleDe(rep,n)),
-    n>1 ? 'Abrir no Google Agenda (recorrente)' : 'Abrir no Google Agenda');
+  window.open(linkGoogle(desc, regs[0].vencimento, '08:00', `${cat} — ${brl(valor)}`, rruleDe(rep,n)), '_blank');
 };
 
 window.pagar = async id => {
@@ -272,9 +267,7 @@ window.salvarLembrete = async () => {
   const descr = regs[0].descricao||'';
   ['l-tit','l-desc','l-data'].forEach(i=>$(i).value='');
   await carregar();
-  baixarICS(regs.map(r=>evento(r.titulo,r.data,r.hora,r.descricao||'')),'bw-lembrete');
-  mostrarG('gboxL', linkGoogle(t, regs[0].data, hora, descr, rruleDe(rep,n)),
-    n>1 ? 'Abrir no Google Agenda (recorrente)' : 'Abrir no Google Agenda');
+  window.open(linkGoogle(t, regs[0].data, hora, descr, rruleDe(rep,n)), '_blank');
 };
 
 /* ---------- GOOGLE AGENDA ---------- */
@@ -296,10 +289,6 @@ function linkGoogle(titulo,data,hora,desc,rrule){
   if(rrule) u += '&recur=' + encodeURIComponent('RRULE:'+rrule);
   return u;
 }
-function mostrarG(id,url,texto){
-  const el = $(id); el.classList.remove('hide');
-  el.innerHTML = `<a class="glink" href="${url}" target="_blank" rel="noopener">${texto}</a>`;
-}
 window.gUm = id => {
   const c = CONTAS.find(x=>x.id===id);
   window.open(linkGoogle(c.descricao,c.vencimento,'08:00',`${c.categoria} — ${brl(Number(c.valor))}`,''),'_blank');
@@ -309,7 +298,7 @@ window.gUmL = id => {
   window.open(linkGoogle(l.titulo,l.data,l.hora,l.descricao||'',''),'_blank');
 };
 
-/* ---------- .ICS ---------- */
+/* ---------- .ICS (iOS, opcional) ---------- */
 function evento(titulo,data,hora,desc){
   const dt = data.replace(/-/g,'')+'T'+(hora||'08:00').slice(0,5).replace(':','')+'00';
   return ['BEGIN:VEVENT','UID:'+crypto.randomUUID()+'@bwgestao',
@@ -330,6 +319,8 @@ function baixarICS(eventos,nome){
 }
 window.icsUm = id => { const c=CONTAS.find(x=>x.id===id);
   baixarICS([evento(c.descricao,c.vencimento,'08:00',`${c.categoria} — ${brl(Number(c.valor))}`)],'bw-'+c.descricao); };
+window.icsUmL = id => { const l=LEMB.find(x=>x.id===id);
+  baixarICS([evento(l.titulo,l.data,l.hora,l.descricao||'')],'bw-'+l.titulo); };
 window.icsMes = () => {
   const p = ref.getFullYear()+'-'+String(ref.getMonth()+1).padStart(2,'0');
   const ev = [...CONTAS.filter(c=>c.vencimento.startsWith(p)&&c.status!=='pago').map(c=>evento('Vence: '+c.descricao,c.vencimento,'08:00',brl(Number(c.valor)))),
@@ -398,8 +389,8 @@ function itemConta(c){
     <div class="val">${brl(Number(c.valor))}</div></div>
     <div class="acoes">
     ${st!=='pago'?`<button class="sec" onclick="pagar('${c.id}')">✓ Marcar como paga</button>`:`<button class="sec" onclick="reabrir('${c.id}')">↺ Reabrir</button>`}
-    <button class="sec" onclick="icsUm('${c.id}')">＋ Agenda</button>
     <button class="sec" onclick="gUm('${c.id}')">＋ Google</button>
+    <button class="sec" onclick="icsUm('${c.id}')">＋ iOS</button>
     <button class="sec" onclick="excluir('${c.id}')">Excluir</button></div></div>`;
 }
 function itemLemb(l){
@@ -408,6 +399,7 @@ function itemLemb(l){
     ${l.descricao?`<small>${l.descricao}</small>`:''}</div></div>
     <div class="acoes"><button class="sec" onclick="concluir('${l.id}',${l.concluido})">${l.concluido?'Reabrir':'Concluir'}</button>
     <button class="sec" onclick="gUmL('${l.id}')">＋ Google</button>
+    <button class="sec" onclick="icsUmL('${l.id}')">＋ iOS</button>
     <button class="sec" onclick="excluirL('${l.id}')">Excluir</button></div></div>`;
 }
 function renderContas(){
@@ -423,4 +415,3 @@ function renderLemb(){
 </script>
 </body>
 </html>
-
