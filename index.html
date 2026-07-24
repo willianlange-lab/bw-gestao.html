@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="BW Gestão">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' fill='%231f3a5f'/%3E%3Ctext x='90' y='118' font-family='Helvetica' font-size='72' font-weight='bold' fill='%23fff' text-anchor='middle'%3EBW%3C/text%3E%3C/svg%3E">
 <title>BW Gestão</title>
@@ -64,16 +63,13 @@ nav span{font-size:19px}
 <div class="card">
 <label>E-mail</label><input type="email" id="email" autocomplete="username">
 <label>Senha</label><input type="password" id="senha" autocomplete="current-password">
-<button class="primary" onclick="entrar()">Entrar</button>
-<button class="primary" onclick="alert('JS OK')">TESTE</button>
-  <button class="primary" onclick="alert('JS OK')">TESTE</button>
-
-<button class="primary" style="background:#fff;color:var(--azul);border:1px solid var(--linha)" onclick="criar()">Criar conta</button>
+<button class="primary" id="btnEntrar">Entrar</button>
+<button class="primary" id="btnCriar" style="background:#fff;color:var(--azul);border:1px solid var(--linha)">Criar conta</button>
 <div class="msg" id="msgLogin"></div>
 </div></div>
 
 <div id="app" class="hide">
-<header><h1>BW GESTÃO</h1><button onclick="sair()">Sair</button></header>
+<header><h1>BW GESTÃO</h1><button id="btnSair">Sair</button></header>
 <main>
 <section id="v-painel">
 <div class="kpis">
@@ -87,10 +83,10 @@ nav span{font-size:19px}
 
 <section id="v-cal" class="hide">
 <div class="card">
-<div class="cal-head"><button class="sec" onclick="mudaMes(-1)">‹</button><b id="mesLabel"></b><button class="sec" onclick="mudaMes(1)">›</button></div>
+<div class="cal-head"><button class="sec" id="mesPrev">‹</button><b id="mesLabel"></b><button class="sec" id="mesNext">›</button></div>
 <div class="grid" id="dows"></div><div class="grid" id="dias"></div>
 <div class="legenda"><span><i class="d-vencida"></i>Vencida</span><span><i class="d-avencer"></i>A vencer</span><span><i class="d-pago"></i>Paga</span><span><i class="d-evento"></i>Evento</span></div>
-<button class="primary" onclick="icsMes()">Exportar mês para o iOS (.ics)</button>
+<button class="primary" id="btnIcsMes">Exportar mês para o iOS (.ics)</button>
 </div>
 <div class="card"><h2 id="tituloDia">Selecione um dia</h2><div id="listaDia"></div></div>
 </section>
@@ -108,22 +104,20 @@ nav span{font-size:19px}
 <label>Valor (R$)</label><input id="c-valor" type="number" step="0.01" inputmode="decimal">
 <label>Vencimento</label><input id="c-venc" type="date">
 <label>Repetição</label>
-<select id="c-rep" onchange="document.getElementById('boxN').classList.toggle('hide',this.value==='unica')">
-<option value="unica">Única</option>
-<option value="diaria">Diária</option>
-<option value="semanal">Semanal</option>
-<option value="mensal">Mensal (fixa)</option>
+<select id="c-rep">
+<option value="unica">Única</option><option value="diaria">Diária</option>
+<option value="semanal">Semanal</option><option value="mensal">Mensal (fixa)</option>
 <option value="parcelada">Parcelada</option>
 </select>
 <div id="boxN" class="hide"><label>Quantidade de repetições/parcelas</label><input id="c-n" type="number" value="12" min="2" max="365"></div>
 <label>Observação</label><textarea id="c-obs" rows="2"></textarea>
-<button class="primary" onclick="salvarConta()">Salvar conta</button>
+<button class="primary" id="btnSalvarConta">Salvar conta</button>
 </div>
 <div class="filtros">
-<button class="on" onclick="filtro('todas',this)">Todas</button>
-<button onclick="filtro('aberto',this)">Em aberto</button>
-<button onclick="filtro('vencida',this)">Vencidas</button>
-<button onclick="filtro('pago',this)">Pagas</button>
+<button class="on" data-f="todas">Todas</button>
+<button data-f="aberto">Em aberto</button>
+<button data-f="vencida">Vencidas</button>
+<button data-f="pago">Pagas</button>
 </div>
 <div id="listaContas"></div>
 </section>
@@ -135,36 +129,32 @@ nav span{font-size:19px}
 <label>Data</label><input id="l-data" type="date">
 <label>Hora</label><input id="l-hora" type="time" value="08:00">
 <label>Repetição</label>
-<select id="l-rep" onchange="document.getElementById('boxLN').classList.toggle('hide',this.value==='unica')">
-<option value="unica">Única</option>
-<option value="diaria">Diária</option>
+<select id="l-rep">
+<option value="unica">Única</option><option value="diaria">Diária</option>
 <option value="semanal">Semanal (mesmo dia da semana)</option>
 <option value="mensal">Mensal (mesmo dia do mês)</option>
 </select>
 <div id="boxLN" class="hide"><label>Quantas repetições</label><input id="l-n" type="number" value="12" min="2" max="365"></div>
-<button class="primary" onclick="salvarLembrete()">Salvar lembrete</button>
+<button class="primary" id="btnSalvarLemb">Salvar lembrete</button>
 </div>
 <div id="listaLemb"></div>
 </section>
 </main>
 <nav>
-<button class="on" onclick="ver('painel',this)"><span>▣</span>Painel</button>
-<button onclick="ver('cal',this)"><span>▦</span>Calendário</button>
-<button onclick="ver('contas',this)"><span>₿</span>Contas</button>
-<button onclick="ver('lemb',this)"><span>◷</span>Lembretes</button>
+<button class="on" data-v="painel"><span>▣</span>Painel</button>
+<button data-v="cal"><span>▦</span>Calendário</button>
+<button data-v="contas"><span>₿</span>Contas</button>
+<button data-v="lemb"><span>◷</span>Lembretes</button>
 </nav>
 </div>
 
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-/* ===== COLE AQUI SUA CHAVE (come\u00e7a com eyJ) ===== */
 const SUPABASE_URL = 'https://vufrvpwpbbqtwahkyvcv.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ1ZnJ2cHdwYmJxdHdhaGt5dmN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2NDg2MTgsImV4cCI6MjEwMDIyNDYxOH0.EfOJDMsCs2UoV8x4qLs9-ecf-0tqlLBH7-Wng3pExo4';
-/* =============================================== */
+const SUPABASE_KEY = ' eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ1ZnJ2cHdwYmJxdHdhaGt5dmN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2NDg2MTgsImV4cCI6MjEwMDIyNDYxOH0.EfOJDMsCs2UoV8x4qLs9-ecf-0tqlLBH7-Wng3pExo4';
 
-const sb = createClient(SUPABASE_URL, SUPABASE_KEY);window.onerror = (m,src,l,c) => { document.body.insertAdjacentHTML('afterbegin', `<div style="background:#dc2626;color:#fff;padding:12px;font-size:13px;position:relative;z-index:999">${m} (linha ${l})</div>`); };
-
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 let CONTAS=[], LEMB=[], ref=new Date(), filtroAtual='todas', diaSel=null;
 const $ = id => document.getElementById(id);
 const brl = v => (v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
@@ -172,16 +162,17 @@ const hoje = () => new Date().toISOString().slice(0,10);
 const dbr = d => d.split('-').reverse().join('/');
 const TZ = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Campo_Grande';
 
-window.entrar = async () => {
+/* LOGIN */
+$('btnEntrar').onclick = async () => {
   const {error} = await sb.auth.signInWithPassword({email:$('email').value.trim(),password:$('senha').value});
-  $('msgLogin').textContent = error ? error.message : '';
-  if(!error) iniciar();
+  if(error){ $('msgLogin').textContent = error.message; return; }
+  iniciar();
 };
-window.criar = async () => {
+$('btnCriar').onclick = async () => {
   const {error} = await sb.auth.signUp({email:$('email').value.trim(),password:$('senha').value});
   $('msgLogin').textContent = error ? error.message : 'Conta criada. Agora toque em Entrar.';
 };
-window.sair = async () => { await sb.auth.signOut(); location.reload(); };
+$('btnSair').onclick = async () => { await sb.auth.signOut(); location.reload(); };
 
 async function iniciar(){
   $('login').classList.add('hide'); $('app').classList.remove('hide');
@@ -198,17 +189,29 @@ async function carregar(){
 }
 function statusConta(c){ return c.status==='pago' ? 'pago' : (c.vencimento < hoje() ? 'vencida' : 'avencer'); }
 
-window.ver = (v,btn) => {
+/* NAV */
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
+  const v = b.dataset.v;
   ['painel','cal','contas','lemb'].forEach(x => $('v-'+x).classList.toggle('hide', x!==v));
-  document.querySelectorAll('nav button').forEach(b => b.classList.remove('on')); btn.classList.add('on');
-};
-window.filtro = (f,btn) => {
-  filtroAtual=f; document.querySelectorAll('.filtros button').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on'); renderContas();
-};
+  document.querySelectorAll('nav button').forEach(x => x.classList.remove('on')); b.classList.add('on');
+});
+document.querySelectorAll('.filtros button').forEach(b => b.onclick = () => {
+  filtroAtual = b.dataset.f;
+  document.querySelectorAll('.filtros button').forEach(x => x.classList.remove('on')); b.classList.add('on');
+  renderContas();
+});
 
-/* ---------- CONTAS ---------- */
-window.salvarConta = async () => {
+/* REPETIÇÃO toggle */
+$('c-rep').onchange = e => $('boxN').classList.toggle('hide', e.target.value==='unica');
+$('l-rep').onchange = e => $('boxLN').classList.toggle('hide', e.target.value==='unica');
+
+/* CALENDÁRIO nav */
+$('mesPrev').onclick = () => { ref = new Date(ref.getFullYear(),ref.getMonth()-1,1); renderCal(); };
+$('mesNext').onclick = () => { ref = new Date(ref.getFullYear(),ref.getMonth()+1,1); renderCal(); };
+$('btnIcsMes').onclick = icsMes;
+
+/* SALVAR CONTA */
+$('btnSalvarConta').onclick = async () => {
   const desc=$('c-desc').value.trim(), valor=parseFloat($('c-valor').value), venc=$('c-venc').value;
   if(!desc||!valor||!venc) return alert('Preencha descrição, valor e vencimento.');
   const rep=$('c-rep').value, n = rep==='unica' ? 1 : (parseInt($('c-n').value)||12);
@@ -236,24 +239,12 @@ window.salvarConta = async () => {
   window.open(linkGoogle(desc, regs[0].vencimento, '08:00', `${cat} — ${brl(valor)}`, rruleDe(rep,n)), '_blank');
 };
 
-window.pagar = async id => {
-  const d = prompt('Data do pagamento (AAAA-MM-DD):', hoje()); if(!d) return;
-  const c = CONTAS.find(x=>x.id===id);
-  const v = prompt('Valor pago (R$):', c.valor); if(v===null) return;
-  await sb.from('contas').update({status:'pago',pago_em:d,valor_pago:parseFloat(v)}).eq('id',id); carregar();
-};
-window.reabrir = async id => { await sb.from('contas').update({status:'aberto',pago_em:null,valor_pago:null}).eq('id',id); carregar(); };
-window.excluir = async id => { if(confirm('Excluir esta conta?')){ await sb.from('contas').delete().eq('id',id); carregar(); } };
-window.excluirL = async id => { if(confirm('Excluir este lembrete?')){ await sb.from('lembretes').delete().eq('id',id); carregar(); } };
-window.concluir = async (id,v) => { await sb.from('lembretes').update({concluido:!v}).eq('id',id); carregar(); };
-
-/* ---------- LEMBRETES ---------- */
-window.salvarLembrete = async () => {
+/* SALVAR LEMBRETE */
+$('btnSalvarLemb').onclick = async () => {
   const t=$('l-tit').value.trim(), d=$('l-data').value, hora=$('l-hora').value;
   if(!t||!d) return alert('Preencha título e data.');
   const rep=$('l-rep').value, n = rep==='unica' ? 1 : (parseInt($('l-n').value)||12);
-  const [Y,M,D]=d.split('-').map(Number);
-  const regs=[];
+  const [Y,M,D]=d.split('-').map(Number); const regs=[];
   for(let i=0;i<n;i++){
     let dt;
     if(rep==='diaria') dt = new Date(Y,M-1,D+i);
@@ -274,7 +265,27 @@ window.salvarLembrete = async () => {
   window.open(linkGoogle(t, regs[0].data, hora, descr, rruleDe(rep,n)), '_blank');
 };
 
-/* ---------- GOOGLE AGENDA ---------- */
+/* AÇÕES (delegação de clique) */
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-act]'); if(!b) return;
+  const id = b.dataset.id, act = b.dataset.act;
+  if(act==='pagar'){
+    const d = prompt('Data do pagamento (AAAA-MM-DD):', hoje()); if(!d) return;
+    const c = CONTAS.find(x=>x.id===id);
+    const v = prompt('Valor pago (R$):', c.valor); if(v===null) return;
+    await sb.from('contas').update({status:'pago',pago_em:d,valor_pago:parseFloat(v)}).eq('id',id); carregar();
+  }
+  if(act==='reabrir'){ await sb.from('contas').update({status:'aberto',pago_em:null,valor_pago:null}).eq('id',id); carregar(); }
+  if(act==='excluir' && confirm('Excluir esta conta?')){ await sb.from('contas').delete().eq('id',id); carregar(); }
+  if(act==='excluirL' && confirm('Excluir este lembrete?')){ await sb.from('lembretes').delete().eq('id',id); carregar(); }
+  if(act==='concluir'){ const l=LEMB.find(x=>x.id===id); await sb.from('lembretes').update({concluido:!l.concluido}).eq('id',id); carregar(); }
+  if(act==='gConta'){ const c=CONTAS.find(x=>x.id===id); window.open(linkGoogle(c.descricao,c.vencimento,'08:00',`${c.categoria} — ${brl(Number(c.valor))}`,''),'_blank'); }
+  if(act==='gLemb'){ const l=LEMB.find(x=>x.id===id); window.open(linkGoogle(l.titulo,l.data,l.hora,l.descricao||'',''),'_blank'); }
+  if(act==='iConta'){ const c=CONTAS.find(x=>x.id===id); baixarICS([evento(c.descricao,c.vencimento,'08:00',`${c.categoria} — ${brl(Number(c.valor))}`)],'bw-'+c.descricao); }
+  if(act==='iLemb'){ const l=LEMB.find(x=>x.id===id); baixarICS([evento(l.titulo,l.data,l.hora,l.descricao||'')],'bw-'+l.titulo); }
+});
+
+/* GOOGLE */
 function rruleDe(rep,n){
   if(!rep || rep==='unica' || n<2) return '';
   const f = {diaria:'DAILY',semanal:'WEEKLY',mensal:'MONTHLY',parcelada:'MONTHLY'}[rep];
@@ -293,16 +304,8 @@ function linkGoogle(titulo,data,hora,desc,rrule){
   if(rrule) u += '&recur=' + encodeURIComponent('RRULE:'+rrule);
   return u;
 }
-window.gUm = id => {
-  const c = CONTAS.find(x=>x.id===id);
-  window.open(linkGoogle(c.descricao,c.vencimento,'08:00',`${c.categoria} — ${brl(Number(c.valor))}`,''),'_blank');
-};
-window.gUmL = id => {
-  const l = LEMB.find(x=>x.id===id);
-  window.open(linkGoogle(l.titulo,l.data,l.hora,l.descricao||'',''),'_blank');
-};
 
-/* ---------- .ICS (iOS, opcional) ---------- */
+/* ICS */
 function evento(titulo,data,hora,desc){
   const dt = data.replace(/-/g,'')+'T'+(hora||'08:00').slice(0,5).replace(':','')+'00';
   return ['BEGIN:VEVENT','UID:'+crypto.randomUUID()+'@bwgestao',
@@ -321,19 +324,15 @@ function baixarICS(eventos,nome){
   a.download=nome.replace(/\s+/g,'_')+'.ics';
   document.body.appendChild(a); a.click(); a.remove();
 }
-window.icsUm = id => { const c=CONTAS.find(x=>x.id===id);
-  baixarICS([evento(c.descricao,c.vencimento,'08:00',`${c.categoria} — ${brl(Number(c.valor))}`)],'bw-'+c.descricao); };
-window.icsUmL = id => { const l=LEMB.find(x=>x.id===id);
-  baixarICS([evento(l.titulo,l.data,l.hora,l.descricao||'')],'bw-'+l.titulo); };
-window.icsMes = () => {
+function icsMes(){
   const p = ref.getFullYear()+'-'+String(ref.getMonth()+1).padStart(2,'0');
   const ev = [...CONTAS.filter(c=>c.vencimento.startsWith(p)&&c.status!=='pago').map(c=>evento('Vence: '+c.descricao,c.vencimento,'08:00',brl(Number(c.valor)))),
     ...LEMB.filter(l=>l.data.startsWith(p)).map(l=>evento(l.titulo,l.data,l.hora,l.descricao||''))];
   if(!ev.length) return alert('Nenhum item neste mês.');
   baixarICS(ev,'bw-gestao-'+p);
-};
+}
 
-/* ---------- NOTIFICAÇÕES ---------- */
+/* NOTIFICAÇÕES */
 function pedirPermissao(){ if('Notification' in window && Notification.permission==='default') Notification.requestPermission(); }
 function avisar(){
   if(!('Notification' in window)||Notification.permission!=='granted') return;
@@ -342,7 +341,7 @@ function avisar(){
     .forEach(c=>new Notification('BW Gestão',{body:`${c.descricao} — ${brl(Number(c.valor))} vence em ${dbr(c.vencimento)}`}));
 }
 
-/* ---------- RENDER ---------- */
+/* RENDER */
 function render(){ renderPainel(); renderCal(); renderContas(); renderLemb(); avisar(); }
 
 function renderPainel(){
@@ -371,18 +370,18 @@ function renderCal(){
     const cs = CONTAS.filter(c=>c.vencimento===iso), ls = LEMB.filter(l=>l.data===iso);
     const tipos = new Set(cs.map(statusConta)); if(ls.length) tipos.add('evento');
     const dots = [...tipos].map(t=>`<span class="dot d-${t}"></span>`).join('');
-    html += `<div class="day ${fora?'out':''} ${iso===hoje()?'hoje':''}" onclick="abrirDia('${iso}')">${d.getDate()}<div class="dots">${dots}</div></div>`;
+    html += `<div class="day ${fora?'out':''} ${iso===hoje()?'hoje':''}" data-dia="${iso}">${d.getDate()}<div class="dots">${dots}</div></div>`;
   }
   $('dias').innerHTML = html;
+  document.querySelectorAll('[data-dia]').forEach(el => el.onclick = () => abrirDia(el.dataset.dia));
   if(diaSel) abrirDia(diaSel);
 }
-window.mudaMes = n => { ref = new Date(ref.getFullYear(),ref.getMonth()+n,1); renderCal(); };
-window.abrirDia = iso => {
+function abrirDia(iso){
   diaSel = iso; $('tituloDia').textContent = 'Dia '+dbr(iso);
   const cs = CONTAS.filter(c=>c.vencimento===iso).map(itemConta);
   const ls = LEMB.filter(l=>l.data===iso).map(itemLemb);
   $('listaDia').innerHTML = [...cs,...ls].join('') || '<small style="color:var(--txt2)">Nada registrado neste dia.</small>';
-};
+}
 
 function itemConta(c){
   const st = statusConta(c);
@@ -392,19 +391,19 @@ function itemConta(c){
     ${c.observacao?`<small>${c.observacao}</small>`:''}</div>
     <div class="val">${brl(Number(c.valor))}</div></div>
     <div class="acoes">
-    ${st!=='pago'?`<button class="sec" onclick="pagar('${c.id}')">✓ Marcar como paga</button>`:`<button class="sec" onclick="reabrir('${c.id}')">↺ Reabrir</button>`}
-    <button class="sec" onclick="gUm('${c.id}')">＋ Google</button>
-    <button class="sec" onclick="icsUm('${c.id}')">＋ iOS</button>
-    <button class="sec" onclick="excluir('${c.id}')">Excluir</button></div></div>`;
+    ${st!=='pago'?`<button class="sec" data-act="pagar" data-id="${c.id}">✓ Marcar como paga</button>`:`<button class="sec" data-act="reabrir" data-id="${c.id}">↺ Reabrir</button>`}
+    <button class="sec" data-act="gConta" data-id="${c.id}">＋ Google</button>
+    <button class="sec" data-act="iConta" data-id="${c.id}">＋ iOS</button>
+    <button class="sec" data-act="excluir" data-id="${c.id}">Excluir</button></div></div>`;
 }
 function itemLemb(l){
   return `<div class="item evento"><div class="lin1"><div><b>${l.concluido?'✓ ':''}${l.titulo}</b>
     <small>${dbr(l.data)} às ${l.hora.slice(0,5)}</small>
     ${l.descricao?`<small>${l.descricao}</small>`:''}</div></div>
-    <div class="acoes"><button class="sec" onclick="concluir('${l.id}',${l.concluido})">${l.concluido?'Reabrir':'Concluir'}</button>
-    <button class="sec" onclick="gUmL('${l.id}')">＋ Google</button>
-    <button class="sec" onclick="icsUmL('${l.id}')">＋ iOS</button>
-    <button class="sec" onclick="excluirL('${l.id}')">Excluir</button></div></div>`;
+    <div class="acoes"><button class="sec" data-act="concluir" data-id="${l.id}">${l.concluido?'Reabrir':'Concluir'}</button>
+    <button class="sec" data-act="gLemb" data-id="${l.id}">＋ Google</button>
+    <button class="sec" data-act="iLemb" data-id="${l.id}">＋ iOS</button>
+    <button class="sec" data-act="excluirL" data-id="${l.id}">Excluir</button></div></div>`;
 }
 function renderContas(){
   let lista = CONTAS;
