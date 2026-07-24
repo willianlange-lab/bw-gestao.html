@@ -56,6 +56,7 @@ nav span{font-size:19px}
 .filtros{display:flex;gap:7px;margin-bottom:12px;overflow-x:auto}
 .filtros button{white-space:nowrap;background:#fff;border:1px solid var(--linha);padding:7px 13px;border-radius:16px;font-size:13px;color:var(--txt2)}
 .filtros button.on{background:var(--azul);color:#fff;border-color:var(--azul)}
+.glink{display:block;text-align:center;background:#fff;border:1px solid var(--linha);color:var(--azul);padding:12px;border-radius:8px;margin-top:10px;text-decoration:none;font-weight:600}
 </style>
 </head>
 <body>
@@ -106,11 +107,16 @@ nav span{font-size:19px}
 <label>Vencimento</label><input id="c-venc" type="date">
 <label>Repetição</label>
 <select id="c-rep" onchange="document.getElementById('boxN').classList.toggle('hide',this.value==='unica')">
-<option value="unica">Única</option><option value="mensal">Mensal (fixa)</option><option value="parcelada">Parcelada</option>
+<option value="unica">Única</option>
+<option value="diaria">Diária</option>
+<option value="semanal">Semanal</option>
+<option value="mensal">Mensal (fixa)</option>
+<option value="parcelada">Parcelada</option>
 </select>
-<div id="boxN" class="hide"><label>Quantidade de meses/parcelas</label><input id="c-n" type="number" value="12" min="2" max="120"></div>
+<div id="boxN" class="hide"><label>Quantidade de repetições/parcelas</label><input id="c-n" type="number" value="12" min="2" max="365"></div>
 <label>Observação</label><textarea id="c-obs" rows="2"></textarea>
 <button class="primary" onclick="salvarConta()">Salvar conta</button>
+<div id="gboxC" class="hide"></div>
 </div>
 <div class="filtros">
 <button class="on" onclick="filtro('todas',this)">Todas</button>
@@ -135,8 +141,8 @@ nav span{font-size:19px}
 <option value="mensal">Mensal (mesmo dia do mês)</option>
 </select>
 <div id="boxLN" class="hide"><label>Quantas repetições</label><input id="l-n" type="number" value="12" min="2" max="365"></div>
-
 <button class="primary" onclick="salvarLembrete()">Salvar lembrete</button>
+<div id="gboxL" class="hide"></div>
 </div>
 <div id="listaLemb"></div>
 </section>
@@ -152,10 +158,10 @@ nav span{font-size:19px}
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-/* ===== COLE AQUI SUAS DUAS CHAVES ===== */
+/* ===== COLE AQUI SUA CHAVE ===== */
 const SUPABASE_URL = 'https://vufrvpwpbbqtwahkyvcv.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ1ZnJ2cHdwYmJxdHdhaGt5dmN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2NDg2MTgsImV4cCI6MjEwMDIyNDYxOH0.EfOJDMsCs2UoV8x4qLs9-ecf-0tqlLBH7-Wng3pExo4';
-/* ====================================== */
+const SUPABASE_KEY = 'SUA_CHAVE_ANON_PUBLICA';
+/* =============================== */
 
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 let CONTAS=[], LEMB=[], ref=new Date(), filtroAtual='todas', diaSel=null;
@@ -163,6 +169,7 @@ const $ = id => document.getElementById(id);
 const brl = v => (v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 const hoje = () => new Date().toISOString().slice(0,10);
 const dbr = d => d.split('-').reverse().join('/');
+const TZ = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Campo_Grande';
 
 window.entrar = async () => {
   const {error} = await sb.auth.signInWithPassword({email:$('email').value.trim(),password:$('senha').value});
@@ -199,26 +206,35 @@ window.filtro = (f,btn) => {
   btn.classList.add('on'); renderContas();
 };
 
+/* ---------- CONTAS ---------- */
 window.salvarConta = async () => {
   const desc=$('c-desc').value.trim(), valor=parseFloat($('c-valor').value), venc=$('c-venc').value;
   if(!desc||!valor||!venc) return alert('Preencha descrição, valor e vencimento.');
   const rep=$('c-rep').value, n = rep==='unica' ? 1 : (parseInt($('c-n').value)||12);
   const grupo=crypto.randomUUID(), regs=[]; const [Y,M,D]=venc.split('-').map(Number);
   for(let i=0;i<n;i++){
-    const d=new Date(Y,M-1+i,1);
-    const ult=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
-    d.setDate(Math.min(D,ult));
+    let dt;
+    if(rep==='diaria') dt = new Date(Y,M-1,D+i);
+    else if(rep==='semanal') dt = new Date(Y,M-1,D+i*7);
+    else if(rep==='mensal'||rep==='parcelada'){
+      const b = new Date(Y,M-1+i,1);
+      const ult = new Date(b.getFullYear(),b.getMonth()+1,0).getDate();
+      dt = new Date(b.getFullYear(),b.getMonth(),Math.min(D,ult));
+    } else dt = new Date(Y,M-1,D);
     regs.push({descricao: rep==='parcelada'?`${desc} (${i+1}/${n})`:desc,
       categoria:$('c-cat').value, valor,
-      vencimento:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`,
+      vencimento:`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`,
       observacao:$('c-obs').value.trim()||null,
       grupo_id:n>1?grupo:null, parcela:n>1?i+1:null, total_parcelas:n>1?n:null});
   }
   const {error} = await sb.from('contas').insert(regs);
   if(error) return alert('Erro: '+error.message);
+  const cat=$('c-cat').value;
   ['c-desc','c-valor','c-venc','c-obs'].forEach(i=>$(i).value='');
   await carregar();
   baixarICS(regs.map(r=>evento(r.descricao,r.vencimento,'08:00',`${r.categoria} — ${brl(r.valor)}`)),'bw-'+desc);
+  mostrarG('gboxC', linkGoogle(desc, regs[0].vencimento, '08:00', `${cat} — ${brl(valor)}`, rruleDe(rep,n)),
+    n>1 ? 'Abrir no Google Agenda (recorrente)' : 'Abrir no Google Agenda');
 };
 
 window.pagar = async id => {
@@ -232,6 +248,7 @@ window.excluir = async id => { if(confirm('Excluir esta conta?')){ await sb.from
 window.excluirL = async id => { if(confirm('Excluir este lembrete?')){ await sb.from('lembretes').delete().eq('id',id); carregar(); } };
 window.concluir = async (id,v) => { await sb.from('lembretes').update({concluido:!v}).eq('id',id); carregar(); };
 
+/* ---------- LEMBRETES ---------- */
 window.salvarLembrete = async () => {
   const t=$('l-tit').value.trim(), d=$('l-data').value, hora=$('l-hora').value;
   if(!t||!d) return alert('Preencha título e data.');
@@ -252,12 +269,47 @@ window.salvarLembrete = async () => {
   }
   const {error} = await sb.from('lembretes').insert(regs);
   if(error) return alert('Erro: '+error.message);
+  const descr = regs[0].descricao||'';
   ['l-tit','l-desc','l-data'].forEach(i=>$(i).value='');
   await carregar();
   baixarICS(regs.map(r=>evento(r.titulo,r.data,r.hora,r.descricao||'')),'bw-lembrete');
+  mostrarG('gboxL', linkGoogle(t, regs[0].data, hora, descr, rruleDe(rep,n)),
+    n>1 ? 'Abrir no Google Agenda (recorrente)' : 'Abrir no Google Agenda');
 };
 
+/* ---------- GOOGLE AGENDA ---------- */
+function rruleDe(rep,n){
+  if(!rep || rep==='unica' || n<2) return '';
+  const f = {diaria:'DAILY',semanal:'WEEKLY',mensal:'MONTHLY',parcelada:'MONTHLY'}[rep];
+  return f ? `FREQ=${f};COUNT=${n}` : '';
+}
+function linkGoogle(titulo,data,hora,desc,rrule){
+  const [Y,M,D] = data.split('-').map(Number);
+  const [H,Mi] = (hora||'08:00').slice(0,5).split(':').map(Number);
+  const a = new Date(Y,M-1,D,H,Mi), b = new Date(a.getTime()+30*60000);
+  const fmt = d => `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}T${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}00`;
+  let u = 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+    + '&text=' + encodeURIComponent(titulo)
+    + '&dates=' + fmt(a) + '/' + fmt(b)
+    + '&ctz=' + encodeURIComponent(TZ)
+    + '&details=' + encodeURIComponent(desc||'');
+  if(rrule) u += '&recur=' + encodeURIComponent('RRULE:'+rrule);
+  return u;
+}
+function mostrarG(id,url,texto){
+  const el = $(id); el.classList.remove('hide');
+  el.innerHTML = `<a class="glink" href="${url}" target="_blank" rel="noopener">${texto}</a>`;
+}
+window.gUm = id => {
+  const c = CONTAS.find(x=>x.id===id);
+  window.open(linkGoogle(c.descricao,c.vencimento,'08:00',`${c.categoria} — ${brl(Number(c.valor))}`,''),'_blank');
+};
+window.gUmL = id => {
+  const l = LEMB.find(x=>x.id===id);
+  window.open(linkGoogle(l.titulo,l.data,l.hora,l.descricao||'',''),'_blank');
+};
 
+/* ---------- .ICS ---------- */
 function evento(titulo,data,hora,desc){
   const dt = data.replace(/-/g,'')+'T'+(hora||'08:00').slice(0,5).replace(':','')+'00';
   return ['BEGIN:VEVENT','UID:'+crypto.randomUUID()+'@bwgestao',
@@ -277,7 +329,7 @@ function baixarICS(eventos,nome){
   document.body.appendChild(a); a.click(); a.remove();
 }
 window.icsUm = id => { const c=CONTAS.find(x=>x.id===id);
-  baixarICS([evento(c.descricao,c.vencimento,'08:00',`${c.categoria} — ${brl(c.valor)}`)],'bw-'+c.descricao); };
+  baixarICS([evento(c.descricao,c.vencimento,'08:00',`${c.categoria} — ${brl(Number(c.valor))}`)],'bw-'+c.descricao); };
 window.icsMes = () => {
   const p = ref.getFullYear()+'-'+String(ref.getMonth()+1).padStart(2,'0');
   const ev = [...CONTAS.filter(c=>c.vencimento.startsWith(p)&&c.status!=='pago').map(c=>evento('Vence: '+c.descricao,c.vencimento,'08:00',brl(Number(c.valor)))),
@@ -286,6 +338,7 @@ window.icsMes = () => {
   baixarICS(ev,'bw-gestao-'+p);
 };
 
+/* ---------- NOTIFICAÇÕES ---------- */
 function pedirPermissao(){ if('Notification' in window && Notification.permission==='default') Notification.requestPermission(); }
 function avisar(){
   if(!('Notification' in window)||Notification.permission!=='granted') return;
@@ -294,6 +347,7 @@ function avisar(){
     .forEach(c=>new Notification('BW Gestão',{body:`${c.descricao} — ${brl(Number(c.valor))} vence em ${dbr(c.vencimento)}`}));
 }
 
+/* ---------- RENDER ---------- */
 function render(){ renderPainel(); renderCal(); renderContas(); renderLemb(); avisar(); }
 
 function renderPainel(){
@@ -345,6 +399,7 @@ function itemConta(c){
     <div class="acoes">
     ${st!=='pago'?`<button class="sec" onclick="pagar('${c.id}')">✓ Marcar como paga</button>`:`<button class="sec" onclick="reabrir('${c.id}')">↺ Reabrir</button>`}
     <button class="sec" onclick="icsUm('${c.id}')">＋ Agenda</button>
+    <button class="sec" onclick="gUm('${c.id}')">＋ Google</button>
     <button class="sec" onclick="excluir('${c.id}')">Excluir</button></div></div>`;
 }
 function itemLemb(l){
@@ -352,6 +407,7 @@ function itemLemb(l){
     <small>${dbr(l.data)} às ${l.hora.slice(0,5)}</small>
     ${l.descricao?`<small>${l.descricao}</small>`:''}</div></div>
     <div class="acoes"><button class="sec" onclick="concluir('${l.id}',${l.concluido})">${l.concluido?'Reabrir':'Concluir'}</button>
+    <button class="sec" onclick="gUmL('${l.id}')">＋ Google</button>
     <button class="sec" onclick="excluirL('${l.id}')">Excluir</button></div></div>`;
 }
 function renderContas(){
@@ -367,3 +423,4 @@ function renderLemb(){
 </script>
 </body>
 </html>
+
